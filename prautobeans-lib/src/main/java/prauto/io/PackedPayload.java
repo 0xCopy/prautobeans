@@ -124,10 +124,10 @@ public class PackedPayload<ProtoMessage> {
             }
         });
 
-        bitsetLen = bool.size() + opt.size();
-        BitSet bitSet = new BitSet(bitsetLen);
-        bitSet.set(bitsetLen);
-        bitsetBytes = bitSet.toByteArray().length;
+        setBitsetLen(bool.size() + opt.size());
+        BitSet bitSet = new BitSet(getBitsetLen());
+        bitSet.set(getBitsetLen());
+        setBitsetBytes(bitSet.toByteArray().length);
         init(theAutoBeanClass);
     }
 
@@ -150,7 +150,7 @@ public class PackedPayload<ProtoMessage> {
 
     public <C extends Class<ProtoMessage>> ProtoMessage get(C c, ByteBuffer in) {
         long size = readSize(in);
-        byte[] bytes = new byte[bitsetBytes];
+        byte[] bytes = new byte[getBitsetBytes()];
         in.get(bytes);
         BitSet bitSet = BitSet.valueOf(bytes);
 
@@ -217,8 +217,8 @@ public class PackedPayload<ProtoMessage> {
         int begin = out.position();
         out.position(begin + 5);
         int fixup = out.position();
-        BitSet bitSet = new BitSet(bitsetLen);
-        if (0 < bitsetLen) bitSet.set(bitsetLen - 1);
+        BitSet bitSet = new BitSet(getBitsetLen());
+        if (0 < getBitsetLen()) bitSet.set(getBitsetLen() - 1);
         AtomicInteger c = new AtomicInteger(0);
         bool.forEach(method -> {
             try {
@@ -275,7 +275,6 @@ public class PackedPayload<ProtoMessage> {
         } else if (returnType.isAnnotationPresent(ProtoOrigin.class)) {
             PackedPayload packedPayload = codeSmell.computeIfAbsent(returnType, aClass -> new PackedPayload(returnType));
             packedPayload.put(value, out);
-
         } else if (returnType.isAssignableFrom(List.class)) {
             int begin = out.position();
             out.position(begin + 5);
@@ -333,6 +332,28 @@ public class PackedPayload<ProtoMessage> {
         assert sanityCheck >= size:"!-- "+in+"/avail:"+sanityCheck+"\treports a size\t"+size ;
 
         return (int) size;
+    }
+
+    /**
+     * number of bits padded to 8, a constant per protobuf
+     */
+    public int getBitsetLen() {
+        return bitsetLen;
+    }
+
+    public void setBitsetLen(int bitsetLen) {
+        this.bitsetLen = bitsetLen;
+    }
+
+    /**
+     * too lazy/distrustful to bother with alignment/8
+     */
+    public int getBitsetBytes() {
+        return bitsetBytes;
+    }
+
+    public void setBitsetBytes(int bitsetBytes) {
+        this.bitsetBytes = bitsetBytes;
     }
 }
     
