@@ -43,6 +43,8 @@ public class PrautoGen
     static Map<String, StripeLeveler> messages = new LinkedHashMap<>();
     static Map<String, EnumGroup> enums = new LinkedHashMap<>();
     static String outdir;
+    @Parameter(defaultValue = "true")     boolean generateDefaults;
+static     boolean wantDefaults;
     @Parameter(defaultValue = "${project.basedir}/src/main/proto")
     public File sourceDirectory;
     @Parameter(defaultValue = "${project.build.directory}/generated-sources")
@@ -85,8 +87,10 @@ public class PrautoGen
             String capped = getCaps(field.getName());
             boolean repeated = field.isRepeated();
             boolean optional = field.isOptional();
-            printWriter.println((optional ? "\n\t@Optional(" + bits.incrementAndGet() + ") default " : "") + "\n\t@ProtoNumber(" + field.getNumber() + ")\n\t" +
-                    (repeated ? ("java.util.List<" + (type) + ">") : (type)) + "\tget" + capped + "()" +(optional ?"{return " +("boolean" == type ?"false":("long" == type || "int" == type)?"0":"null")+
+          String s = wantDefaults ? "default " : " ";
+          printWriter.println((optional ? "\n\t@Optional(" + bits.incrementAndGet() + ") " + s +
+                " " : "") + "\n\t@ProtoNumber(" + field.getNumber() + ")\n\t" +
+                    (repeated ? ("java.util.List<" + (type) + ">") : (type)) + "\tget" + capped + "()" +((optional &&wantDefaults) ?"{return " +("boolean" == type ?"false":("long" == type || "int" == type)?"0":"null")+
                     ";}":";")+
                     "\n");
         });
@@ -150,6 +154,7 @@ public class PrautoGen
         try {
 
             outdir = outputDirectory.getAbsolutePath();
+            wantDefaults=generateDefaults;
 
 
             Files.walkFileTree(Paths.get(sourceDirectory.getCanonicalPath()), new SimpleFileVisitor<Path>() {
