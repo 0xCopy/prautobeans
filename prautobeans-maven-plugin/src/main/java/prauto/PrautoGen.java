@@ -32,6 +32,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Goal which touches a timestamp file.
@@ -141,10 +142,8 @@ static     boolean wantDefaults;
             String javaType1 = field.getJavaType().replace("ByteString","java.util.List<Byte>");
             x.addField(field, javaType1);
         }
-        Collection<EnumGroup> nestedEnumGroups = message.getNestedEnumGroups();
-        nestedEnumGroups.forEach(o -> {
-            String name = o.getName();
-            enums.put(name, o);
+        message.getNestedEnumGroups().forEach(o -> {
+            enums.put(o.getName(), o);
         });
     }
 
@@ -189,13 +188,8 @@ static     boolean wantDefaults;
     }
 
     static class StripeLeveler {
-        static public List<String> inFirst = new ArrayList<>();
-        static {
-            Class[] x = {boolean.class, byte.class, short.class, int.class, float.class, long.class, double.class};
-            for (Class aClass : x) {
-                inFirst.add(aClass.getSimpleName());
-            }
-        }
+        static public List<String> inFirst =             Arrays.asList(new Class<?>[]{boolean.class, byte.class, short.class, int.class, float.class, long.class, double.class}).stream().map(Class::getSimpleName).collect(Collectors.toList());
+
         public Map<String, List<Field>> stripes = new LinkedHashMap<>();
         Message message;
 
@@ -203,7 +197,9 @@ static     boolean wantDefaults;
             this.message = message;
         }
 
-        void addField(Field<?> field, String javaType1) {
+        void addField(Field<?> field, String javaType1)  {
+
+
             Map<String, List<Field>> f = this.stripes;
             List<Field> fieldList = f.get(javaType1);
             if (fieldList == null) {
@@ -211,6 +207,8 @@ static     boolean wantDefaults;
                 this.stripes.put(javaType1, fieldList);
             }
             fieldList.add(field);
+
+
         }
     }
 }
