@@ -11,8 +11,7 @@
         <junit.version>4.11</junit.version>
 
         <protostuff-parser.version>1.0.8</protostuff-parser.version>
-        <maven-plugin-plugin.version>3.4-SNAPSHOT</maven-plugin-plugin.version>
-    </properties>
+     </properties>
     <packaging>pom</packaging>
 
 
@@ -77,7 +76,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <version>${maven-plugin-plugin.version}</version>
+                    <version>3.4-SNAPSHOT</version>
                 </plugin>
             </plugins>
         </pluginManagement>
