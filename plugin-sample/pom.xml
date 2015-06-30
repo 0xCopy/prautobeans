@@ -4,9 +4,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>prautobeans</groupId>
+        <groupId>com.github.0xCopy.prautobeans</groupId>
         <artifactId>prautobeans-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
 
     <artifactId>plugin-sample</artifactId>
@@ -58,7 +58,7 @@
             <plugin>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>prautobeans-maven-plugin</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>1.0</version>
                 <executions>
                     <execution>
                         <id>generate-sources</id>
