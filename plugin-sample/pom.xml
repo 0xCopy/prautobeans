@@ -6,7 +6,7 @@
     <parent>
         <groupId>prautobeans</groupId>
         <artifactId>prautobeans-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
 
     <artifactId>plugin-sample</artifactId>
@@ -58,7 +58,7 @@
             <plugin>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>prautobeans-maven-plugin</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>1.0</version>
                 <executions>
                     <execution>
                         <id>generate-sources</id>

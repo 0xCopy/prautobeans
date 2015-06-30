@@ -4,12 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>prautobeans</groupId>
     <artifactId>prautobeans-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <properties>
         <maven-plugin-annotations.version>3.4</maven-plugin-annotations.version>
         <plexus-utils.version>3.0.17</plexus-utils.version>
         <junit.version>4.11</junit.version>
-
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <protostuff-parser.version>1.0.8</protostuff-parser.version>
      </properties>
     <packaging>pom</packaging>
