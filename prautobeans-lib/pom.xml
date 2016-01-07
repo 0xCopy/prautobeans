@@ -8,7 +8,9 @@
         <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+<description>
+    serialization libraries tied to prautobeans annotations,  this library produces Proxies
+</description>
     <artifactId>prautobeans-lib</artifactId>
     <dependencies>
         <dependency>
