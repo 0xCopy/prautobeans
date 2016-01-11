@@ -90,10 +90,17 @@ public class PrautoGen
             boolean repeated = field.isRepeated();
             boolean optional = field.isOptional();
           String s = wantDefaults ? "default " : " ";
-          printWriter.println((optional ? "\n\t@Optional(" + bits.incrementAndGet() + ") " : "") + "\n" +
+            String ltype = type.replaceAll("^byte$", "Byte")
+                    .replaceAll("^char$", "Char")
+                    .replaceAll("^int$", "Integer")
+                    .replaceAll("^float$", "Float")
+                    .replaceAll("^long$", "Long")
+                    .replaceAll("^double$", "Double")
+                    .replaceAll("^boolean$", "Boolean");
+            printWriter.println((optional ? "\n\t@Optional(" + bits.incrementAndGet() + ") " : "") + "\n" +
                   "\t@ProtoNumber(" + field.getNumber() + ")\n" +
-                  "\t" +(optional?s:" ")+ (repeated ? ("java.util.List<" + (type) + ">") : (type)) + "\tget" + capped + "()" +(!(optional && wantDefaults) ? ";" : "{return " + ("boolean" == type ? "false" : ("long" == type || "int" == type) ? "0" : "null") + ";}") + "\n"+
-                  "\t" +(optional?s:" ")+ " void set" + capped+"("+ (repeated ? ("java.util.List<" + (type) + ">") : (type)) + " $" +
+                  "\t" +(optional?s:" ")+ (repeated ? ("java.util.List<" + ltype + ">") : (type)) + "\tget" + capped + "()" +(!(optional && wantDefaults) ? ";" : "{return " + ("boolean" == type ? "false" : ("long" == type || "int" == type) ? "0" : "null") + ";}") + "\n"+
+                  "\t" +(optional?s:" ")+ " void set" + capped+"("+ (repeated ? ("java.util.List<" + (ltype) + ">") : (type)) + " $" +
                   field.getName()+"$)"  +(!(optional && wantDefaults) ? ";" : "{}") + "\n"
           );
         });
@@ -141,15 +148,10 @@ public class PrautoGen
         messages.put(message.getFullName(), x);
         List<Field<?>> fields = message.getFields();
         for (Field<?> field : fields) {
-            String javaType1 = field.getJavaType()
+            String javaType = field.getJavaType();
+            String javaType1 = javaType
                     .replace("ByteString","java.util.List<Byte>")
-                    .replace("java.util.List<byte>","java.util.List<Byte>")
-                    .replace("java.util.List<char>","java.util.List<Char>")
-                    .replace("java.util.List<int>","java.util.List<Integer>")
-                    .replace("java.util.List<float>","java.util.List<Float>")
-                    .replace("java.util.List<long>","java.util.List<Long>")
-                    .replace("java.util.List<double>","java.util.List<Double>")
-                    .replace("java.util.List<boolean>","java.util.List<Boolean>")
+
                     ;
             x.addField(field, javaType1);
         }
@@ -167,7 +169,9 @@ public class PrautoGen
             wantDefaults=generateDefaults;
 
 
-            Files.walkFileTree(Paths.get(sourceDirectory.getCanonicalPath()), new SimpleFileVisitor<Path>() {
+            String canonicalPath = sourceDirectory.getCanonicalPath();
+            Path path = Paths.get(canonicalPath);
+            SimpleFileVisitor<Path> fileVisitor = new SimpleFileVisitor<Path>() {
 
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
@@ -192,7 +196,8 @@ public class PrautoGen
                     }
                     return FileVisitResult.CONTINUE;
                 }
-            });
+            };
+            Files.walkFileTree(path, fileVisitor);
         } catch (IOException e) {
             e.printStackTrace();
         }

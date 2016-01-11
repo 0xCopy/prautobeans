@@ -5,6 +5,8 @@ option java_package = "kouchdb.command";
 
 option java_outer_classname = "SchemaCommands";
 
+message TestLongList{    repeated int64 testSomePrim=101800;
+}
 
     /**
      * Create a database

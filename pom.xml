@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.0xCopy.prautobeans</groupId>
     <artifactId>prautobeans-parent</artifactId>
-    <version>1.0</version>
+    <version>1.0.2-SNAPSHOT</version>
     <properties>
         <maven-plugin-annotations.version>3.4</maven-plugin-annotations.version>
         <plexus-utils.version>3.0.17</plexus-utils.version>
@@ -15,8 +15,6 @@
         <protostuff-parser.version>1.0.8</protostuff-parser.version>
     </properties>
     <packaging>pom</packaging>
-
-
     <modules>
         <module>prautobeans-lib</module>
         <module>prautobeans-maven-plugin</module>
