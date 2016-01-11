@@ -141,7 +141,16 @@ public class PrautoGen
         messages.put(message.getFullName(), x);
         List<Field<?>> fields = message.getFields();
         for (Field<?> field : fields) {
-            String javaType1 = field.getJavaType().replace("ByteString","java.util.List<Byte>");
+            String javaType1 = field.getJavaType()
+                    .replace("ByteString","java.util.List<Byte>")
+                    .replace("java.util.List<byte>","java.util.List<Byte>")
+                    .replace("java.util.List<char>","java.util.List<Char>")
+                    .replace("java.util.List<int>","java.util.List<Integer>")
+                    .replace("java.util.List<float>","java.util.List<Float>")
+                    .replace("java.util.List<long>","java.util.List<Long>")
+                    .replace("java.util.List<double>","java.util.List<Double>")
+                    .replace("java.util.List<boolean>","java.util.List<Boolean>")
+                    ;
             x.addField(field, javaType1);
         }
         message.getNestedEnumGroups().forEach(o -> {
