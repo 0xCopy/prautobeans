@@ -99,7 +99,7 @@ public class PrautoGen
                     .replaceAll("^boolean$", "Boolean");
             printWriter.println((optional ? "\n\t@Optional(" + bits.incrementAndGet() + ") " : "") + "\n" +
                   "\t@ProtoNumber(" + field.getNumber() + ")\n" +
-                  "\t" +(optional?s:" ")+ (repeated ? ("java.util.List<" + ltype + ">") : (type)) + "\tget" + capped + "()" +(!(optional && wantDefaults) ? ";" : "{return " + ("boolean" == type ? "false" : ("long" == type || "int" == type) ? "0" : "null") + ";}") + "\n"+
+                  "\t" +(optional?s:" ")+ (repeated ? ("java.util.List<" + ltype + ">") : (type)) + (type.endsWith("oolean") ? "\tis" : "\tget" )+ capped + "()" +(!(optional && wantDefaults) ? ";" : "{return " + ("boolean" == type ? "false" : ("long" == type || "int" == type) ? "0" : "null") + ";}") + "\n"+
                   "\t" +(optional?s:" ")+ " void set" + capped+"("+ (repeated ? ("java.util.List<" + (ltype) + ">") : (type)) + " $" +
                   field.getName()+"$)"  +(!(optional && wantDefaults) ? ";" : "{}") + "\n"
           );
