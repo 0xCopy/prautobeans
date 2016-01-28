@@ -38,8 +38,7 @@ public class PrautoBeansCheck
     }
 
     private class MyCreateOptions implements CreateOptions {
-        @Override
-        public boolean getAutoCompaction() {
+        public boolean isAutoCompaction() {
             return true;
         }
 
