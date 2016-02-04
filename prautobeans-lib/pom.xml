@@ -18,9 +18,5 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.dyuproject.protostuff</groupId>
-            <artifactId>protostuff-parser</artifactId>
-        </dependency>
     </dependencies>
 </project>
