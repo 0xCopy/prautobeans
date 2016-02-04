@@ -1,7 +1,7 @@
 package prauto.command;
 
-import prauto.io.PackedPayload;
 import org.junit.Test;
+import prauto.io.PackedPayload;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -11,6 +11,7 @@ import java.util.BitSet;
 import java.util.List;
 
 import static java.lang.Integer.toBinaryString;
+import static prauto.io.ErrLog.errLog;
 
 
 public class PackedPayloadTest {
@@ -19,7 +20,7 @@ public class PackedPayloadTest {
     public void packTest() {
         BitSet bitSet = new BitSet(6);
         bitSet.set(0, 6);
-        System.err.println(Integer.toBinaryString(bitSet.toByteArray()[0]));
+        errLog(Integer.toBinaryString(bitSet.toByteArray()[0]));
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(256 << 10);
         ComplexPrautoBean complexPrautoBean = new ComplexPrautoBean() {
             @Override
@@ -101,12 +102,12 @@ public class PackedPayloadTest {
         createOptionsClassPackedPayload.put(complexPrautoBean, byteBuffer);
         ByteBuffer flip = (ByteBuffer) byteBuffer.flip();
 
-        System.err.println(StandardCharsets.UTF_8.decode(byteBuffer.duplicate()));
+        errLog(StandardCharsets.UTF_8.decode(byteBuffer.duplicate()));
 
         ByteBuffer duplicate = (ByteBuffer) byteBuffer.duplicate();
         PackedPayload.readSize(duplicate);
         byte b = duplicate.get();
-        System.err.println(toBinaryString(b & 0xff));
+        errLog(toBinaryString(b & 0xff));
 
 
         ComplexPrautoBean complexPrautoBean1 =

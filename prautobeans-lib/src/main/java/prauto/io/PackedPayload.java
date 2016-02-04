@@ -4,10 +4,7 @@ import prauto.ann.Optional;
 import prauto.ann.ProtoNumber;
 import prauto.ann.ProtoOrigin;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -157,15 +154,16 @@ public class PackedPayload<ProtoMessage> {
         Map<Method, Object> values = new TreeMap<>(METHOD_COMPARATOR);
         Map<Method, Object> offsets = new TreeMap<>(METHOD_COMPARATOR);
 
-        AtomicInteger c1 = new AtomicInteger(0);
-        bool.forEach(method -> values.put(method, bitSet.get(c1.getAndIncrement())));
+        AtomicInteger bitCounter = new AtomicInteger(0);
+        bool.forEach(method -> values.put(method, bitSet.get(bitCounter.getAndIncrement())));
 
         nonOpt.forEach(method -> skim(in, values, offsets, method, in.position()));
+
         //handle opt
-        c1.set(0);
+        bitCounter.set(0);
 
         opt.forEach(method -> {
-            if (bitSet.get(bool.size() + c1.getAndIncrement()))
+            if (bitSet.get(bool.size() + bitCounter.getAndIncrement()))
                 skim(in, values, offsets, method, in.position());
             else
                 values.put(method, null);
@@ -173,43 +171,58 @@ public class PackedPayload<ProtoMessage> {
 
         return (ProtoMessage) Proxy.newProxyInstance(c.getClassLoader(),
                 new Class[]{c},
-                (proxy, method, args) ->
-                values.computeIfAbsent(method, k -> offsets.computeIfPresent(k, (k1, v) -> {
-                    in.position((Integer) v);
-                    int size1 = readSize(in);
-                    int fin = in.position() + size1;
+                (proxy, method, args) -> values.computeIfAbsent(method, k -> offsets.computeIfPresent(k, (k1, v) -> PackedPayload.this.registerMethod(in, method, (Integer) v))));
 
-                    Class returnType = method.getReturnType();
-                    Object r = null;
-                    if (returnType.isAnnotationPresent(ProtoOrigin.class))
-                        r = codeSmell.computeIfAbsent(returnType, PackedPayload::new).get(returnType, in);
-                    else if (returnType.isAssignableFrom(List.class)) {
-                        //enums lack generic type parms. not sure why
-                        ParameterizedType genericReturnType = (ParameterizedType) method.getGenericReturnType();
-                        Class aClass = (Class) genericReturnType.getActualTypeArguments()[0];
-                        System.err.println("");
+    }
 
-                        if (VIEWSIZES.containsKey(aClass)) {
-                            r = new ReadOnlyBBList(aClass, VIEWSIZES.get(aClass), (ByteBuffer) in.slice().limit(size1));
-                            in.position(fin);
-                        } else {
-                            List<Object> objects = new ArrayList<>();
-                            r = objects;
-                            if (aClass.isEnum())
-                                while (in.position() < fin)
-                                    objects.add(aClass.getEnumConstants()[in.getShort()]);
-                            else {
-                                PackedPayload packedPayload = codeSmell.computeIfAbsent(aClass, PackedPayload::new);
-                                while (in.position() < fin) {
-                                    Object o = packedPayload.get(aClass, in);
-                                    objects.add(o);
-                                }
-                            }
-                        }
-                    }
-                    return r;
-                })));
+    private Object registerMethod(ByteBuffer in, Method method, Integer v) {
+        in.position(v);
+        int size1 = readSize(in);
+        int fin = in.position() + size1;
 
+        Class returnType = method.getReturnType();
+        Object r = null;
+        if (returnType.isAnnotationPresent(ProtoOrigin.class))
+            r = codeSmell.computeIfAbsent(returnType, PackedPayload::new).get(returnType, in);
+        else if (returnType.isAssignableFrom(List.class)) r = handleLists(in, method, size1, fin);
+        return r;
+    }
+
+    private Object handleLists(ByteBuffer in, Method method, int size1, int fin) {
+        Object r;//enums lack generic type parms. not sure why
+        ParameterizedType genericReturnType = (ParameterizedType) method.getGenericReturnType();
+        Class aClass = (Class) genericReturnType.getActualTypeArguments()[0];
+        System.err.println("");
+
+        if (VIEWSIZES.containsKey(aClass)) {
+            r = handlePrimitiveList(in, size1, fin, aClass);
+        } else {
+            r = handleSequence(in, fin, aClass);
+        }
+        return r;
+    }
+
+    private Object handlePrimitiveList(ByteBuffer in, int size1, int fin, Class aClass) {
+        Object r;
+        r = new ReadOnlyBBList(aClass, VIEWSIZES.get(aClass), (ByteBuffer) in.slice().limit(size1));
+        in.position(fin);
+        return r;
+    }
+
+    private Object handleSequence(ByteBuffer in, int fin, Class aClass) {
+        Object r;List<Object> objects = new ArrayList<>();
+        r = objects;
+        if (aClass.isEnum())
+            while (in.position() < fin)
+                objects.add(aClass.getEnumConstants()[in.getShort()]);
+        else {
+            PackedPayload packedPayload = codeSmell.computeIfAbsent(aClass, PackedPayload::new);
+            while (in.position() < fin) {
+                Object o = packedPayload.get(aClass, in);
+                objects.add(o);
+            }
+        }
+        return r;
     }
 
 
@@ -282,22 +295,17 @@ public class PackedPayload<ProtoMessage> {
             Class genericReturnType = (Class) ((ParameterizedType) method.getGenericReturnType()).getActualTypeArguments()[0];
 
             List list = (List) value;
-            if (VIEWSETTER.containsKey(genericReturnType)) {
-                BiConsumer<ByteBuffer, Object> byteBufferObjectBiConsumer = VIEWSETTER.get(genericReturnType);
-                list.forEach(o -> byteBufferObjectBiConsumer.accept(out, o));
-            } else if (genericReturnType.isEnum()) list.forEach(o -> {
-                int ordinal = ((Enum) o).ordinal();
-                out.putShort((short) (ordinal & 0xffff));
-            });
+            if (VIEWSETTER.containsKey(genericReturnType))
+                list.forEach(o -> VIEWSETTER.get(genericReturnType).accept(out, o));
+            else if (genericReturnType.isEnum()) list.forEach(o -> out.putShort((short) (((Enum) o).ordinal() & 0xffff)));
             else if (genericReturnType.isAnnotationPresent(ProtoOrigin.class))
                 list.forEach(o -> writeElement(out, o, null, genericReturnType));
-
             writeSize(out, begin, out.position() - content);
         }
     }
 
 
-    public static final <T, C extends Class<T>> PackedPayload<T> create(C c) {
+    public static <T, C extends Class<T>> PackedPayload<T> create(C c) {
         return codeSmell.computeIfAbsent(c, PackedPayload::new);
     }
 
@@ -346,7 +354,7 @@ public class PackedPayload<ProtoMessage> {
     }
 
     /**
-     * too lazy/distrustful to bother with alignment/8
+     * alignment/8 bits
      */
     public int getBitsetBytes() {
         return bitsetBytes;

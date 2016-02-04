@@ -60,7 +60,7 @@ public class PrautoGen
         Collections.addAll(strings, javaPackageName.split("\\."));
         strings.add(cname+".java");
         Path path = Paths.get(outdir, (String[]) strings.toArray(new String[strings.size()]));
-        //System.err.println("writing message: " + path);
+        //errLog("writing message: " + path);
         try (BufferedWriter bufferedWriter = Files.newBufferedWriter(path,StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING,StandardOpenOption.WRITE);
              PrintWriter pw = new PrintWriter(bufferedWriter)
         ) {
@@ -134,7 +134,7 @@ public class PrautoGen
 
     static void descend(Message Message) {
 
-        //System.err.println("descend: " + Message.getFullName());
+        //errLog("descend: " + Message.getFullName());
         LinkedHashMap<String, Message> nestedMessageMap = Message.getNestedMessageMap();
         for (Map.Entry<String, Message> stringMessageEntry : nestedMessageMap.entrySet()) {
             descend(stringMessageEntry.getValue());
@@ -185,7 +185,7 @@ public class PrautoGen
                             String javaPackageName = target.getJavaPackageName();
 
                             Path directories = Files.createDirectories(Paths.get(outdir, javaPackageName.split("\\.")));
-                            //System.err.println("writing to " + directories.toUri());
+                            //errLog("writing to " + directories.toUri());
 
                             target.getMessages().forEach(PrautoGen::descend);
                         } catch (Exception e) {
