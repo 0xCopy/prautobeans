@@ -16,10 +16,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * Created by jim on 17/04/05.
  */
 public interface PackedPayloadUtil {
-    /**
-     * a nil holder
-     */
-    byte[] EMPTY = new byte[0];
+
+
     Map<Class, Integer> VIEWSIZES = new HashMap<Class, Integer>() {{
         put(long.class, 8);
         put(double.class, 8);
