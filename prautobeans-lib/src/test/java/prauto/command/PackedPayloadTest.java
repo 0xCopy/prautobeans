@@ -2,6 +2,7 @@ package prauto.command;
 
 import org.junit.Test;
 import prauto.io.PackedPayload;
+import prauto.io.PackedPayloadUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +13,8 @@ import java.util.List;
 
 import static java.lang.Integer.toBinaryString;
 import static prauto.io.ErrLog.errLog;
+import static prauto.io.PackedPayloadUtil.create;
+import static prauto.io.PackedPayloadUtil.readSize;
 
 
 public class PackedPayloadTest {
@@ -98,23 +101,22 @@ public class PackedPayloadTest {
                 return lists;
             }
         };
-        PackedPayload<ComplexPrautoBean> createOptionsClassPackedPayload =PackedPayload.create(ComplexPrautoBean.class);
+        PackedPayload<ComplexPrautoBean> createOptionsClassPackedPayload = create(ComplexPrautoBean.class);
         createOptionsClassPackedPayload.put(complexPrautoBean, byteBuffer);
         ByteBuffer flip = (ByteBuffer) byteBuffer.flip();
 
         errLog(StandardCharsets.UTF_8.decode(byteBuffer.duplicate()));
 
-        ByteBuffer duplicate = (ByteBuffer) byteBuffer.duplicate();
-        PackedPayload.readSize(duplicate);
+        ByteBuffer duplicate = byteBuffer.duplicate();
+        readSize(duplicate);
         byte b = duplicate.get();
         errLog(toBinaryString(b & 0xff));
 
-
         ComplexPrautoBean complexPrautoBean1 =
-        PackedPayload.create(ComplexPrautoBean.class).get(ComplexPrautoBean.class, (ByteBuffer) flip);
+                (ComplexPrautoBean) create(ComplexPrautoBean.class).get(ComplexPrautoBean.class, flip);
 
         TheEnum theEnum = complexPrautoBean1.getEnumThingy().get(2);
-        org.junit.Assert.assertEquals( TheEnum.z ,theEnum);
+        org.junit.Assert.assertEquals(TheEnum.z, theEnum);
         String cache = complexPrautoBean.getCache();
         String cache1 = complexPrautoBean1.getCache();
         org.junit.Assert.assertEquals(cache1, cache);
